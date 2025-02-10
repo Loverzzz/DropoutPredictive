@@ -34,8 +34,13 @@ Sumber data: (https://github.com/dicodingacademy/dicoding_dataset/blob/main/stud
 
 Setup environment:
 ```
+conda create --name proyek_pyspark python=3.9
 
+conda activate proyek_pyspark
+
+pip install -r requirements.txt
 ```
+
 
 ## Business Dashboard
 Dashboard yang telah dibuat bertujuan untuk membantu Jaya Jaya Institut memantau performa siswa dan mengidentifikasi faktor-faktor yang berkontribusi terhadap angka dropout. 
