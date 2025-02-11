@@ -58,6 +58,9 @@ pip install -r requirements.txt
 ```
 streamlit run app.py
 ```
+
+Link Streamlit Deploy : https://dropoutpredictive.streamlit.app/
+
 ## Conclusion
 Melalui proyek ini, berhasil mengembangkan sistem prediksi yang dapat membantu Jaya Jaya Institut mendeteksi siswa yang berisiko melakukan dropout. Dengan prediksi yang lebih cepat, pihak institusi dapat memberikan intervensi yang lebih tepat waktu untuk mendukung siswa yang membutuhkan.
 
