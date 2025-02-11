@@ -21,35 +21,43 @@ data[numerical_columns] = data[numerical_columns].fillna(data[numerical_columns]
 for col in categorical_columns:
     data[col] = data[col].fillna(data[col].mode()[0])
 
-# Check the missing values after filling
-data.isnull().sum()  # This should now return 0 for all columns
-
-# Proceeding to encode the target variable 'Status' (Dropout and Graduate) as a numerical value
-from sklearn.preprocessing import LabelEncoder
+# Encode the target variable 'Status' (Dropout and Graduate) as a numerical value
 le = LabelEncoder()
 data['Status'] = le.fit_transform(data['Status'])
-# Calculate average for each status
-avg_enrolled = data[data['Status'] == 1]['Curricular_units_2nd_sem_approved'].mean()
-avg_graduate= data[data['Status'] == 2]['Curricular_units_2nd_sem_approved'].mean()
-avg_dropout= data[data['Status'] == 0]['Curricular_units_2nd_sem_approved'].mean()
+
+# Split data into features (X) and target (y)
+X = data.drop('Status', axis=1)
+y = data['Status']
+
+# Split the data into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Initialize and train the Random Forest model
+model = RandomForestClassifier(n_estimators=100, random_state=42)
+model.fit(X_train, y_train)
+
+# Predict on the test set
+y_pred = model.predict(X_test)
+
+# Display the classification report and confusion matrix
+st.write("Classification Report:")
+st.write(classification_report(y_test, y_pred))
+st.write("Confusion Matrix:")
+st.write(confusion_matrix(y_test, y_pred))
 
 # Title of the Streamlit App
 st.title("Student Dropout Prediction")
 
-# Display the averages
-st.write(f"Average Curricular Units Approved for Dropout: {avg_dropout:.2f}")
-st.write(f"Average Curricular Units Approved for Enrolled: {avg_enrolled:.2f}")
-st.write(f"Average Curricular Units Approved for Graduate: {avg_graduate:.2f}")
+# Add input fields for users to enter values for each feature
+input_values = {}
+for col in numerical_columns:
+    input_values[col] = st.number_input(f"Enter the value for {col}", value=0)
 
-# Add input field for user to enter number of curricular units approved in the 2nd semester
-curricular_units_approved = st.number_input('Enter the number of Curricular Units Approved in 2nd Semester', min_value=0, max_value=100, value=0)
+# Prepare user input for prediction (convert to DataFrame)
+user_input = pd.DataFrame([input_values])
 
-# Predict dropout status based on the entered curricular units
+# Predict the status using the trained Random Forest model
 if st.button('Predict Status'):
-    # Compare the entered value with the average values
-    if curricular_units_approved < avg_dropout:
-        st.write("The student is likely to dropout.")
-    elif curricular_units_approved > avg_graduate:
-        st.write("The student is likely to graduate.")
-    else:
-        st.write("The student is likely to be enrolled.")
+    user_prediction = model.predict(user_input)
+    prediction = le.inverse_transform(user_prediction)
+    st.write(f"Predicted Status: {prediction[0]}")
