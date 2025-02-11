@@ -10,23 +10,16 @@ from sklearn.metrics import classification_report, confusion_matrix
 data = pd.read_csv('data.csv', delimiter=";")
 
 # Preprocess data
-# Separate numerical columns and categorical columns
-numerical_columns = data.select_dtypes(include=[np.number]).columns
-categorical_columns = data.select_dtypes(include=[object]).columns
-
 # Fill missing values in numerical columns with their mean
+numerical_columns = data.select_dtypes(include=[np.number]).columns
 data[numerical_columns] = data[numerical_columns].fillna(data[numerical_columns].mean())
-
-# For categorical columns, we can either fill missing values with a placeholder or the mode (most frequent value)
-for col in categorical_columns:
-    data[col] = data[col].fillna(data[col].mode()[0])
 
 # Encode the target variable 'Status' (Dropout and Graduate) as a numerical value
 le = LabelEncoder()
 data['Status'] = le.fit_transform(data['Status'])
 
-# Split data into features (X) and target (y)
-X = data.drop('Status', axis=1)
+# Select only the relevant feature (Curricular_units_2nd_sem_approved)
+X = data[['Curricular_units_2nd_sem_approved']]  # Only this feature as input
 y = data['Status']
 
 # Split the data into training and testing sets
@@ -48,16 +41,8 @@ st.write(confusion_matrix(y_test, y_pred))
 # Title of the Streamlit App
 st.title("Student Dropout Prediction")
 
-# Add input fields for users to enter values for each feature
-input_values = {}
-for col in numerical_columns:
-    input_values[col] = st.number_input(f"Enter the value for {col}", value=0)
+# Add input field for the user to enter the value for Curricular_units_2nd_sem_approved
+curricular_units_approved = st.number_input('Enter the number of Curricular Units Approved in 2nd Semester', min_value=0, max_value=100, value=0)
 
-# Prepare user input for prediction (convert to DataFrame)
-user_input = pd.DataFrame([input_values])
-
-# Predict the status using the trained Random Forest model
-if st.button('Predict Status'):
-    user_prediction = model.predict(user_input)
-    prediction = le.inverse_transform(user_prediction)
-    st.write(f"Predicted Status: {prediction[0]}")
+# Prepare user input for prediction
+user_input = pd.DataFrame({'Curricular_units_2nd_sem_approved': [curricular_
