@@ -45,4 +45,10 @@ st.title("Student Dropout Prediction")
 curricular_units_approved = st.number_input('Enter the number of Curricular Units Approved in 2nd Semester', min_value=0, max_value=100, value=0)
 
 # Prepare user input for prediction
-user_input = pd.DataFrame({'Curricular_units_2nd_sem_approved': [curricular_
+user_input = pd.DataFrame({'Curricular_units_2nd_sem_approved': [curricular_units_approved]})
+
+# Predict the status using the trained Random Forest model
+if st.button('Predict Status'):
+    user_prediction = model.predict(user_input)
+    prediction = le.inverse_transform(user_prediction)
+    st.write(f"Predicted Status: {prediction[0]}")
