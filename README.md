@@ -62,6 +62,7 @@ streamlit run app.py
 Melalui proyek ini, berhasil mengembangkan sistem prediksi yang dapat membantu Jaya Jaya Institut mendeteksi siswa yang berisiko melakukan dropout. Dengan prediksi yang lebih cepat, pihak institusi dapat memberikan intervensi yang lebih tepat waktu untuk mendukung siswa yang membutuhkan.
 
 Feature Importance : 
+
 ![image](https://github.com/user-attachments/assets/5bfc7a55-858c-484f-ae19-4e588d9f8362)
 
 Penjelasan Grafik Feature Importance:
