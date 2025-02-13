@@ -1,57 +1,67 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.preprocessing import LabelEncoder
 import joblib
 
-# Load the saved model (RandomForest)
-rf_model = joblib.load('rfmodel.pkl')
+# Muat model yang sudah disimpan
+best_rf = joblib.load('rfmodel.pkl')
 
-# Load the dataset to preprocess and match user inputs
+# Muat dataset untuk preprocessing
 data = pd.read_csv('data.csv', delimiter=";")
 
-# Preprocess data (similar to how it's done in your notebook)
-numerical_columns = data.select_dtypes(include=[np.number]).columns
-categorical_columns = data.select_dtypes(include=[object]).columns
+# Mengambil nama kolom fitur yang digunakan oleh model
+features = best_rf.feature_names_in_
 
-# Fill missing values in numerical columns with their mean
-data[numerical_columns] = data[numerical_columns].fillna(data[numerical_columns].mean())
+# Judul Aplikasi Streamlit
+st.title("Prediksi Dropout Mahasiswa")
 
-# For categorical columns, fill missing values with the mode (most frequent value)
-for col in categorical_columns:
-    data[col] = data[col].fillna(data[col].mode()[0])
+# Menampilkan informasi aplikasi
+st.write("Prediksi dropout, tetap terdaftar, atau lulus berdasarkan data akademiknya.")
 
-# Encode the target variable 'Status' (Dropout and Graduate) as a numerical value
-le = LabelEncoder()
-data['Status'] = le.fit_transform(data['Status'])
+# Menambahkan kolom input bagi pengguna untuk memasukkan data
+curricular_units_approved = st.number_input('Masukkan jumlah Curricular Units yang disetujui pada Semester 2 (0 - 7)', min_value=0, max_value=7, value=0)
+curricular_units_2nd_sem_grade = st.number_input('Masukkan Nilai Curricular Units di Semester 2 (0 - 12)', min_value=0, max_value=12, value=0)
+admission_grade = st.number_input('Masukkan Nilai Admission Grade (95 - 190)', min_value=0, max_value=190, value=0)
 
-# Title of the Streamlit App
-st.title("Student Dropout Prediction")
-
-# Display some helpful information
-st.write("This app predicts whether a student will dropout, graduate, or remain enrolled based on their academic data.")
-
-# Add input fields for the user to enter data
-curricular_units_approved = st.number_input('Enter the number of Curricular Units Approved in 2nd Semester', min_value=0, max_value=100, value=0)
-curricular_units_1st_sem_approved = st.number_input('Enter the number of Curricular Units Approved in 1st Semester', min_value=0, max_value=100, value=0)
-admission_grade = st.number_input('Enter the Admission Grade', min_value=0, max_value=100, value=0)
-
-# Prepare the input data for prediction
+# Membuat DataFrame dengan data input yang ada
 input_data = pd.DataFrame({
     'Curricular_units_2nd_sem_approved': [curricular_units_approved],
-    'Curricular_units_1st_sem_approved': [curricular_units_1st_sem_approved],
+    'Curricular_units_1st_sem_approved': [curricular_units_2nd_sem_grade],
     'Admission_grade': [admission_grade]
 })
 
-# Make prediction using the trained Random Forest model
-if st.button('Predict Status'):
-    prediction = rf_model.predict(input_data)
-    prediction_label = le.inverse_transform(prediction)[0]
-    
-    if prediction_label == 0:
-        st.write("The student is likely to dropout.")
-    elif prediction_label == 1:
-        st.write("The student is likely to be enrolled.")
-    else:
-        st.write("The student is likely to graduate.")
+# Menambahkan kolom yang hilang dengan nilai NaN sesuai dengan fitur yang digunakan oleh model
+for col in features:
+    if col not in input_data.columns:
+        input_data[col] = np.nan
+
+# Menangani nilai hilang: untuk numerik dengan rata-rata, dan kategorikal dengan modus
+numerical_columns = input_data.select_dtypes(include=[np.number]).columns
+categorical_columns = input_data.select_dtypes(include=[object]).columns
+
+# Isi nilai hilang pada kolom numerik dengan rata-rata kolom yang sama
+for col in numerical_columns:
+    input_data[col] = input_data[col].fillna(input_data[col].mean())
+
+# Isi nilai hilang pada kolom kategorikal dengan modus
+for col in categorical_columns:
+    input_data[col] = input_data[col].fillna(input_data[col].mode()[0])
+
+# Menyesuaikan urutan kolom input_data dengan urutan fitur yang digunakan saat pelatihan
+input_data = input_data[features]
+
+# Menampilkan data input untuk debugging
+st.write("Data Input yang Digunakan:")
+st.write(input_data)
+
+# Prediksi dengan model
+prediction = best_rf.predict(input_data)
+
+# Menampilkan hasil prediksi
+prediction_label = prediction[0]
+if prediction_label == 0:
+    st.write("Siswa kemungkinan akan dropout.")
+elif prediction_label == 1:
+    st.write("Siswa kemungkinan akan tetap terdaftar.")
+else:
+    st.write("Siswa kemungkinan akan lulus.")
